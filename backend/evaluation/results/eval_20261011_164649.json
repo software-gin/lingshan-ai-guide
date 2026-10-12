@@ -1,0 +1,52 @@
+{
+  "summary": {
+    "agent_tool_acc": {
+      "total": 3,
+      "passed": 2,
+      "rate": 66.7
+    }
+  },
+  "details": {
+    "agent": [
+      {
+        "id": "A01",
+        "query": "帮我推荐一条亲子路线",
+        "expect_tool": "get_route_recommendation",
+        "args_keywords": [
+          "亲子"
+        ],
+        "pass": true,
+        "called_tools": [
+          "get_route_recommendation"
+        ],
+        "latency": 0.61
+      },
+      {
+        "id": "A02",
+        "query": "灵山大佛的门票多少钱？",
+        "expect_tool": "get_spot_info",
+        "args_keywords": [
+          "灵山大佛"
+        ],
+        "pass": true,
+        "called_tools": [
+          "get_spot_info"
+        ],
+        "latency": 0.55
+      },
+      {
+        "id": "A03",
+        "query": "梵宫的开放时间和看点是什么？",
+        "expect_tool": "search_knowledge",
+        "args_keywords": [
+          "梵宫"
+        ],
+        "pass": false,
+        "called_tools": [
+          "get_spot_info"
+        ],
+        "latency": 0.51
+      }
+    ]
+  }
+}

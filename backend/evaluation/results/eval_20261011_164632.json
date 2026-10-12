@@ -1,0 +1,77 @@
+{
+  "summary": {
+    "rag_hit@5": {
+      "total": 4,
+      "passed": 0,
+      "rate": 0.0
+    }
+  },
+  "details": {
+    "rag": [
+      {
+        "id": "R01",
+        "query": "灵山大佛有多高？",
+        "expect_keywords": [
+          "灵山大佛",
+          "88",
+          "八十八"
+        ],
+        "expect_categories": [
+          "scene_intro",
+          "basic_info"
+        ],
+        "hit": false,
+        "latency": 0.07,
+        "top1_title": "",
+        "preview": "    "
+      },
+      {
+        "id": "R02",
+        "query": "九龙灌浴的表演时间是什么时候？",
+        "expect_keywords": [
+          "九龙灌浴",
+          "灌浴",
+          "表演"
+        ],
+        "expect_categories": [
+          "scene_intro",
+          "faq",
+          "basic_info"
+        ],
+        "hit": false,
+        "latency": 0.08,
+        "top1_title": "",
+        "preview": "    "
+      },
+      {
+        "id": "R03",
+        "query": "梵宫里有什么值得看的？",
+        "expect_keywords": [
+          "梵宫"
+        ],
+        "expect_categories": [
+          "scene_intro"
+        ],
+        "hit": false,
+        "latency": 0.07,
+        "top1_title": "",
+        "preview": "    "
+      },
+      {
+        "id": "R04",
+        "query": "祥符禅寺的历史背景是怎样的？",
+        "expect_keywords": [
+          "祥符禅寺"
+        ],
+        "expect_categories": [
+          "history",
+          "scene_intro"
+        ],
+        "hit": false,
+        "latency": 0.08,
+        "top1_title": "",
+        "preview": "    "
+      }
+    ]
+  }
+}

@@ -146,7 +146,7 @@ ROUTER_PRECHECK = _env_bool("ROUTER_PRECHECK", True)
 
 # ======================== 视频理解配置（降级方案：关键帧+单帧理解+ASR+融合） ========================
 VIDEO_ALLOWED_EXTENSIONS = _env_set("VIDEO_ALLOWED_EXTENSIONS", {"mp4", "avi", "mov", "mkv", "webm"})
-VIDEO_MAX_SIZE = _env_int("VIDEO_MAX_SIZE", 100 * 1024 * 1024)  # 100MB
+VIDEO_MAX_SIZE = _env_int("VIDEO_MAX_SIZE", 128 * 1024 * 1024)  # 128MB，与 MAX_CONTENT_LENGTH 保持一致
 VIDEO_MAX_KEYFRAMES = _env_int("VIDEO_MAX_KEYFRAMES", 6)        # 关键帧抽提上限
 
 # ======================== Whisper ASR 配置 ========================

@@ -568,6 +568,7 @@ class LLMService:
                 "answer": answer,
                 "route_intent": route_intent,
                 "route_data": route_data,
+                "in_scope": self._is_in_scope(question_text, answer),
             }
 
         route_intent = self._looks_like_route(question_text, response_text)
@@ -576,7 +577,25 @@ class LLMService:
             "answer": response_text,
             "route_intent": route_intent,
             "route_data": route_data,
+            "in_scope": self._is_in_scope(question_text, response_text),
         }
+
+    def _is_in_scope(self, question: str, answer: str) -> bool:
+        """
+        判断回答内容是否属于灵山胜境/拈花湾范围。
+        当识别到外地场景（回答明确提示内容不在景区范围）时返回 False，
+        用于前端展示"无对应路线"提示，避免渲染固定的灵山路线。
+        """
+        text = f"{question or ''}\n{answer or ''}"
+        foreign_patterns = [
+            r"不在[^。，,；;]{0,8}(范围|灵山|景区)",
+            r"并不在[^。，,；;]{0,8}(范围|灵山|景区)",
+            r"不属于[^。，,；;]{0,8}(范围|灵山|景区)",
+            r"(范围之外|范围外)",
+            r"(无对应路线|无对应|暂不支持|暂时不支持)",
+            r"不是灵山[^。，,；;]{0,6}(景区|胜地|景点)",
+        ]
+        return not any(re.search(p, text) for p in foreign_patterns)
 
     def _looks_like_route(self, question: str, answer: str) -> bool:
         text = f"{question}\n{answer}".lower()

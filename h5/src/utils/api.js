@@ -94,7 +94,7 @@ export const uploadImage = (formData) => api.post('/user/upload-image', formData
   timeout: 60000  // 图片上传超时 60s
 })
 
-/** 上传视频（多模态视频理解，单文件 ≤100MB） */
+/** 上传视频（多模态视频理解，单文件 ≤128MB） */
 export const uploadVideo = (formData) => api.post('/user/upload-video', formData, {
   headers: { 'Content-Type': 'multipart/form-data' },
   timeout: 180000  // 视频较大，超时 180s

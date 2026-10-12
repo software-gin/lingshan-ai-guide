@@ -8,8 +8,15 @@
       <div class="info-text">{{ routeSummary }}</div>
     </div>
 
-    <!-- 路线概览卡片 -->
-    <div class="route-summary-card">
+    <!-- 外地地点：无对应路线空态 -->
+    <div v-if="!inScope" class="no-route-card">
+      <div class="no-route-icon">🚧</div>
+      <div class="no-route-title">此地点暂无对应路线</div>
+      <div class="no-route-desc">当前识别的内容不在灵山胜境 / 拈花湾禅意小镇范围内，暂不支持路线预览。</div>
+    </div>
+
+    <!-- 路线概览卡片（仅景区范围内显示固定路线） -->
+    <div v-if="inScope" class="route-summary-card">
       <div class="viz-title">🗺️ 路线预览</div>
       <div class="route-flow">
         <div class="route-node start">
@@ -43,8 +50,8 @@
       <canvas ref="vizCanvas" class="viz-canvas"></canvas>
     </div> -->
 
-    <!-- Leaflet 交互地图 -->
-    <div class="route-map-card">
+    <!-- Leaflet 交互地图（仅景区范围内显示） -->
+    <div v-if="inScope" class="route-map-card">
       <div class="viz-title">📍 交互地图</div>
       <div ref="leafletMap" class="leaflet-map"></div>
       <div class="map-actions">
@@ -100,6 +107,8 @@ const origin = computed(() => route.query.origin || '景区入口')
 const destination = computed(() => route.query.destination || '灵山大佛')
 const waypoints = computed(() => (route.query.waypoints || '').split(',').filter(Boolean))
 const mode = computed(() => route.query.mode || 'walk')
+// 是否在灵山胜境/拈花湾范围内：外地地点不开放路线预览（默认 true 兼容普通导航）
+const inScope = computed(() => history.state?.inScope !== false)
 
 // 估算距离与时间（基于 route-plan 传来的 summary 或默认值）
 const estimateDistance = computed(() => {
@@ -373,6 +382,18 @@ onMounted(async () => {
   padding: 14px 16px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 }
+.no-route-card {
+  margin: 0 16px 12px;
+  background: #fff;
+  border-radius: 14px;
+  padding: 32px 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  text-align: center;
+  border: 1px dashed #e0d0cf;
+}
+.no-route-icon { font-size: 40px; margin-bottom: 12px; }
+.no-route-title { font-size: 16px; font-weight: 700; color: #c0392b; margin-bottom: 8px; }
+.no-route-desc { font-size: 13px; line-height: 1.7; color: #8a6d6a; }
 .info-title { font-size: 14px; font-weight: 700; color: #2d3a2d; margin-bottom: 8px; }
 .info-text { font-size: 13px; line-height: 1.7; color: #4b5b4b; }
 .route-viz-card {

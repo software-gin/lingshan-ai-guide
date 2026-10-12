@@ -92,9 +92,14 @@
             </div>
             <div class="bubble-text" v-if="msg.text">{{ msg.text }}</div>
             <div v-if="msg.role === 'ai' && msg.routeInfo" class="route-action">
-              <van-button size="small" round plain type="primary" @click="openRouteMap(msg.routeInfo)">
-                查看地图
-              </van-button>
+              <template v-if="msg.routeInfo.in_scope !== false">
+                <van-button size="small" round plain type="primary" @click="openRouteMap(msg.routeInfo)">
+                  查看地图
+                </van-button>
+              </template>
+              <template v-else>
+                <div class="no-route-hint">⚠️ 此地点暂不支持路线预览，无对应路线</div>
+              </template>
             </div>
             <div class="bubble-meta">
               <span class="bubble-time">{{ msg.time }}</span>
@@ -272,7 +277,7 @@
             <span>选择视频</span>
           </div>
         </div>
-        <p class="upload-tip">图片最多 9 张（单张 ≤10MB）；视频单个 ≤100MB，支持 MP4/AVI/MOV/MKV/WebM</p>
+        <p class="upload-tip">图片最多 9 张（单张 ≤10MB）；视频单个 ≤128MB，支持 MP4/AVI/MOV/MKV/WebM</p>
       </div>
     </van-action-sheet>
 
@@ -328,7 +333,7 @@ const uploading = ref(false)        // 上传中
 // ---- 视频上传状态（单视频，优先于图片发送） ----
 const selectedVideo = ref(null)     // { url, name }
 const videoInputRef = ref(null)
-const MAX_VIDEO_SIZE = 100 * 1024 * 1024  // 100MB，与后端 VIDEO_MAX_SIZE 一致
+const MAX_VIDEO_SIZE = 128 * 1024 * 1024  // 128MB，与后端 VIDEO_MAX_SIZE 一致
 
 // ---- 顶部头像状态 ----
 const headerAvatarLoading = ref(false)
@@ -915,7 +920,8 @@ function openRouteMap(routeInfo) {
       summary: payload.summary || '',
       tips: payload.tips || '',
       routeName: payload.route_name || '',
-      duration: payload.duration || ''
+      duration: payload.duration || '',
+      inScope: payload.in_scope !== false
     }
   })
 }
@@ -1234,7 +1240,7 @@ async function handleVideoSelect(event) {
   if (!file) return
 
   if (file.size > MAX_VIDEO_SIZE) {
-    showNotify({ type: 'warning', message: '视频超过 100MB 限制', duration: 2000 })
+    showNotify({ type: 'warning', message: '视频超过 128MB 限制', duration: 2000 })
     return
   }
 
@@ -1266,7 +1272,31 @@ function removeVideo() {
   selectedVideo.value = null
 }
 
-function sendWithVideo() {
+// 确保 WebSocket 已连接：未连接则自动重连并等待就绪，避免误走"模拟回复"假分支
+async function ensureWsConnected() {
+  let ws = getWsClient()
+  const initData = { user_id: userStore.userInfo?.id || 0, digital_human_id: dhStore.currentId }
+  if (!ws) {
+    try {
+      const res = await getWsInfo()
+      if (res.code !== 200) return false
+      createWsClient(res.data.ws_url, initData)
+      ws = getWsClient()
+    } catch (e) {
+      console.warn('ensureWsConnected: 重建 WebSocket 失败', e)
+      return false
+    }
+  }
+  if (ws.isConnected.value) return true
+  ws.connect(initData) // 触发（重）连接，connect 内部 onopen 会置 isConnected=true
+  for (let i = 0; i < 50; i++) {
+    if (ws.isConnected.value) return true
+    await new Promise((r) => setTimeout(r, 50))
+  }
+  return ws.isConnected.value
+}
+
+async function sendWithVideo() {
   if (!selectedVideo.value) return
   const text = inputText.value.trim() || popupText.value.trim() || '请分析这段视频的内容'
   const videoUrl = selectedVideo.value.url
@@ -1290,15 +1320,14 @@ function sendWithVideo() {
   chatStore.addAiMessage('')
   scrollToBottom()
 
-  const ws = getWsClient()
-  if (ws && ws.isConnected.value) {
-    ws.sendVideo(videoUrl, text)
+  const connected = await ensureWsConnected()
+  if (connected) {
+    getWsClient().sendVideo(videoUrl, text)
   } else {
-    // 降级：模拟回复
-    setTimeout(() => {
-      chatStore.addAiMessage('已收到您的视频，请保持网络连接。')
-      scrollToBottom()
-    }, 1000)
+    // WebSocket 未能就绪：明确提示，而非误导性的"模拟回复"
+    chatStore.addAiMessage('视频识别服务连接失败（WebSocket 未就绪），请检查网络后重试。')
+    chatStore.setProcessing(false)
+    scrollToBottom()
   }
 
   // 清空已选视频
@@ -1515,6 +1544,15 @@ function scrollToBottom() {
 /* ===== 内容区 ===== */
 .route-action {
   margin-top: 8px;
+}
+.no-route-hint {
+  display: inline-block;
+  font-size: 12px;
+  color: #c0392b;
+  background: #fdf0ef;
+  border: 1px solid #f5c6c2;
+  border-radius: 999px;
+  padding: 4px 12px;
 }
 
 .content-area {

@@ -476,7 +476,8 @@ def handle_chat(ws):
 
         try:
             route_info = llm.extract_route_info(question, full_answer)
-            if route_info.get("route_intent") and route_info.get("route_data"):
+            # 有路线意图时发送（含"识别为外地、无对应路线"的场景，前端据此展示提示而非固定灵山路线）
+            if route_info.get("route_intent") and (route_info.get("route_data") or route_info.get("in_scope") is False):
                 # 用干净的 answer 替换 route_info 中的 answer
                 route_info["answer"] = clean_answer
                 _send(ws, {"type": MSG_TYPE_ROUTE, "data": route_info})
